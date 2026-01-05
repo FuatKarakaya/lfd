@@ -1,146 +1,173 @@
-# Factor Analysis (FA)
+# Decision Tree: Root Node Impurity Calculation
 
-## Overview
+## What is a Decision Tree?
 
-Factor Analysis is a statistical method used to identify **hidden (latent) factors** that explain correlations among observed variables. Unlike PCA, which focuses on total variance, FA specifically models the **shared variance** between variables.
-
----
-
-## Core Concept
-
-FA assumes that your observed measurements are **caused by** a smaller number of underlying, unobservable factors, plus some unique noise for each variable.
-
-### The Generative Model
-
-$$\mathbf{x} = \mathbf{L}\mathbf{f} + \boldsymbol{\epsilon}$$
-
-Where:
-- $\mathbf{x}$ = vector of observed variables (what you measure)
-- $\mathbf{f}$ = vector of latent factors (what you're trying to discover)
-- $\mathbf{L}$ = factor loading matrix (how each factor influences each variable)
-- $\boldsymbol{\epsilon}$ = unique variance / error term (noise specific to each variable)
+A decision tree is a machine learning algorithm that makes predictions by splitting data based on features. Before we can decide which feature to split on, we need to measure how "mixed" or "impure" our data is.
 
 ---
 
-## Key Terms
+## Our Dataset
 
-| Term | Definition |
-|------|------------|
-| **Latent Factor** | An unobserved variable that influences multiple observed variables |
-| **Factor Loading** | The correlation/weight between a factor and an observed variable |
-| **Communality** | The proportion of a variable's variance explained by the common factors |
-| **Uniqueness** | The proportion of variance specific to that variable alone (not shared) |
+We have 10 animals with 4 features and a class label (+ or -):
 
----
-
-## Intuitive Example: Intelligence Testing
-
-Imagine you administer 10 different cognitive tests to students:
-- Vocabulary
-- Reading comprehension
-- Verbal analogies
-- Arithmetic
-- Algebra
-- Geometry
-- Pattern recognition
-- Spatial rotation
-- Memory span
-- Processing speed
-
-You notice that scores on the first three tests are highly correlated with each other, and scores on tests 4-6 are also correlated with each other.
-
-**FA might reveal:**
-- **Factor 1 (Verbal Ability)**: Strongly loads on vocabulary, reading, verbal analogies
-- **Factor 2 (Mathematical Ability)**: Strongly loads on arithmetic, algebra, geometry
-- **Factor 3 (Fluid Intelligence)**: Loads on pattern recognition, spatial rotation
-
-These factors weren't directly measured—they're *inferred* from the correlation structure.
+| Length | Gills | Beak | Teeth | Class |
+|--------|-------|------|-------|-------|
+| 3 | N | Y | M | + |
+| 4 | N | Y | M | + |
+| 3 | N | Y | F | + |
+| 5 | N | Y | M | + |
+| 5 | N | Y | F | + |
+| 5 | Y | Y | M | - |
+| 4 | Y | Y | M | - |
+| 5 | Y | N | M | - |
+| 4 | Y | N | M | - |
+| 4 | N | Y | F | - |
 
 ---
 
-## How Factor Analysis Works
+## Step 1: Count the Classes
 
-### Step 1: Start with the Correlation Matrix
-Examine how all variables correlate with each other.
+Before calculating anything, we need to count how many of each class we have:
 
-### Step 2: Extract Factors
-Use methods like:
-- **Principal Axis Factoring**
-- **Maximum Likelihood Estimation**
-
-### Step 3: Determine Number of Factors
-Common criteria:
-- Eigenvalue > 1 (Kaiser criterion)
-- Scree plot inspection
-- Parallel analysis
-- Theoretical considerations
-
-### Step 4: Rotate Factors (Optional but Common)
-Rotation makes factors more interpretable:
-- **Varimax** (orthogonal): Keeps factors uncorrelated
-- **Promax** (oblique): Allows factors to correlate
-
-### Step 5: Interpret Factor Loadings
-High loadings (typically |loading| > 0.4) indicate which variables "belong" to which factor.
+- **Total samples:** 10
+- **Positive class (+):** 5 samples
+- **Negative class (-):** 5 samples
 
 ---
 
-## FA vs. PCA: Key Differences
+## Step 2: Calculate Probabilities
 
-| Aspect | PCA | Factor Analysis |
-|--------|-----|-----------------|
-| **Goal** | Maximize explained variance | Model correlation structure |
-| **Assumption** | Components are linear combinations | Observed = factors + unique error |
-| **Variance** | Explains total variance | Explains shared variance only |
-| **Unique variance** | Not modeled separately | Explicitly modeled as $\epsilon$ |
-| **Interpretation** | Mathematical constructs | Often interpreted as real causes |
-| **Use case** | Data reduction, preprocessing | Theory building, understanding structure |
-
-### Visual Intuition
+The probability of each class is simply the count divided by total:
 
 ```
-PCA:          Observed Variables ──────► Components (mathematical summary)
-
-FA:           Latent Factors ──────► Observed Variables + Unique Error
-              (underlying causes)     (what we actually measure)
+p(+) = 5 / 10 = 0.5  (50%)
+p(-) = 5 / 10 = 0.5  (50%)
 ```
 
 ---
 
-## When to Use Factor Analysis
+## Method 1: Gini Index
 
-✅ **Good Use Cases:**
-- Psychology: Identifying personality traits from questionnaire items
-- Education: Understanding underlying abilities from test scores
-- Marketing: Finding latent consumer preferences from survey responses
-- Medicine: Grouping symptoms into underlying syndromes
+### The Formula
 
-❌ **Not Ideal When:**
-- You just want to reduce dimensions for another algorithm (use PCA)
-- You have very few variables
-- Variables don't have meaningful correlations
-- You need a deterministic transformation
+```
+Gini = 1 - Σ(p_i)²
+```
+
+This means: Take 1, then subtract the sum of each probability squared.
+
+### Step-by-Step Calculation
+
+**Step A:** Square each probability
+```
+p(+)² = 0.5 × 0.5 = 0.25
+p(-)² = 0.5 × 0.5 = 0.25
+```
+
+**Step B:** Add the squared probabilities
+```
+Sum = 0.25 + 0.25 = 0.5
+```
+
+**Step C:** Subtract from 1
+```
+Gini = 1 - 0.5 = 0.5
+```
+
+### Result
+```
+Gini Index = 0.5
+```
+
+### What Does This Mean?
+
+- Gini = 0 means the node is "pure" (all samples belong to one class)
+- Gini = 0.5 (for 2 classes) means maximum impurity (perfectly mixed)
+
+Our Gini of 0.5 means we have the most mixed possible situation - exactly half positive and half negative.
 
 ---
 
-## Assumptions of Factor Analysis
+## Method 2: Entropy
 
-1. **Linearity**: Relationships between factors and variables are linear
-2. **No multicollinearity**: Variables shouldn't be perfectly correlated
-3. **Adequate sample size**: Typically N > 100, or N:p ratio of at least 5:1
-4. **Normality**: For maximum likelihood estimation (less critical for principal axis)
-5. **Correlation exists**: Variables should be meaningfully correlated
+### The Formula
+
+```
+Entropy = Σ p_i × log₂(1/p_i)
+```
+
+This is the same as:
+```
+Entropy = -Σ p_i × log₂(p_i)
+```
+
+### Step-by-Step Calculation
+
+**Step A:** Calculate log₂(1/p) for each class
+
+For the positive class:
+```
+log₂(1/0.5) = log₂(2) = 1
+```
+
+For the negative class:
+```
+log₂(1/0.5) = log₂(2) = 1
+```
+
+**Step B:** Multiply each by its probability
+```
+For (+): 0.5 × 1 = 0.5
+For (-): 0.5 × 1 = 0.5
+```
+
+**Step C:** Add them together
+```
+Entropy = 0.5 + 0.5 = 1.0 bit
+```
+
+### Result
+```
+Entropy = 1.0 bit
+```
+
+### What Does This Mean?
+
+- Entropy = 0 means the node is "pure" (all samples belong to one class)
+- Entropy = 1.0 (for 2 classes) means maximum impurity (perfectly mixed)
+
+Our Entropy of 1.0 bits means maximum uncertainty - we cannot predict the class better than random guessing.
 
 ---
 
-## Summary
+## Summary Table
 
-Factor Analysis is a powerful tool for **discovering latent structure** in data. It goes beyond mere dimensionality reduction by proposing a **causal model**: hidden factors generate the observed correlations. This makes FA particularly valuable in fields like psychology and social sciences, where we often believe that abstract constructs (intelligence, personality, attitudes) underlie measurable behaviors.
+| Measure | Formula | Our Result | Meaning |
+|---------|---------|------------|---------|
+| **Gini Index** | 1 - Σp_i² | 0.5 | Maximum impurity |
+| **Entropy** | Σp_i × log₂(1/p_i) | 1.0 bit | Maximum uncertainty |
 
 ---
 
-## Further Reading
+## Why Does This Matter?
 
-- Thurstone, L.L. (1947). *Multiple Factor Analysis*
-- Thompson, B. (2004). *Exploratory and Confirmatory Factor Analysis*
-- Fabrigar, L.R. & Wegener, D.T. (2012). *Exploratory Factor Analysis*
+The root node has maximum impurity because our classes are perfectly balanced (5 vs 5). 
+
+**Next step:** We would calculate the impurity AFTER splitting on each feature, then choose the feature that reduces impurity the most! This reduction is called "Information Gain."
+
+---
+
+## Quick Reference: Logarithm Values
+
+If you need to calculate entropy by hand, here are useful log₂ values:
+
+| Value | log₂(Value) |
+|-------|-------------|
+| 1 | 0 |
+| 2 | 1 |
+| 4 | 2 |
+| 8 | 3 |
+| 0.5 | -1 |
+| 0.25 | -2 |
+
+Remember: log₂(1/x) = -log₂(x)
