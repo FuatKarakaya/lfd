@@ -1,5 +1,5 @@
 # Support Vector Machines: A Complete Guide
-
+https://www.youtube.com/watch?v=efR1C6CvhmE
 ## 1. SVM: Linearly Separable and Non-Separable Cases
 
 ### The Core Idea
