@@ -1,5 +1,11 @@
 # PAC Learning: A Complete Study Guide
 
+> **PAC = Probably Approximately Correct**
+> 
+> - **Probably** → With high probability (at least $1 - \delta$)
+> - **Approximately** → Close to the truth (error at most $\epsilon$)
+> - **Correct** → Our hypothesis matches the true concept
+
 ## Table of Contents
 1. [What is Learning?](#1-what-is-learning)
 2. [The PAC Framework](#2-the-pac-framework)
@@ -41,7 +47,7 @@ This is the key insight:
 
 ### Visual Understanding: Hypotheses vs. The Truth
 
-![Hypothesis vs Truth Graph](1.png)
+![Hypothesis vs Truth Graph](1.jpeg)
 
 Look at the graph above with data points scattered across the plane:
 
@@ -128,6 +134,20 @@ Solving for $m$:
 
 $$m \geq \frac{1}{\epsilon} \ln \frac{|\mathcal{C}|}{\delta}$$
 
+**Derivation:**
+
+We want the failure probability to be at most $\delta$:
+$$\delta \geq |\mathcal{C}|(1 - \epsilon)^m$$
+
+Using the fundamental inequality $1 - x \leq e^{-x}$:
+$$\delta \geq |\mathcal{C}|e^{-m\epsilon}$$
+
+Take $\ln$ of both sides:
+$$-\ln\left(\frac{\delta}{|\mathcal{C}|}\right) \leq m\epsilon$$
+
+Therefore:
+$$m \geq \frac{1}{\epsilon} \ln \frac{|\mathcal{C}|}{\delta}$$
+
 **In plain English**: To learn with error $\epsilon$ and confidence $1-\delta$, you need at least this many samples.
 
 > **Example**: 
@@ -178,7 +198,7 @@ This is addressed by VC dimension:
 
 ### Why is Proper Learning NP-Hard? The 3-Collinearity Problem
 
-![3-Collinearity Problem](2.png)
+![3-Collinearity Problem](2.jpeg)
 
 Here's a classic example that shows why proper learning is NP-hard:
 
@@ -233,25 +253,25 @@ Before your exam, make sure you can answer:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        PAC LEARNING                              │
+│                        PAC LEARNING                             │
 ├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
+│                                                                 │
 │   GOAL: Learn a hypothesis h that approximates target c         │
-│                                                                  │
+│                                                                 │
 │   ┌─────────────┐        ┌─────────────┐                        │
 │   │  Training   │        │   Learned   │                        │
-│   │   Samples   │ ────▶  │ Hypothesis  │                        │
-│   │   (m examples)       │     h       │                        │
+│   │   Samples   │ ────▶ │ Hypothesis  │                        │
+│   │ (m examples)|        │     h       │                        │
 │   └─────────────┘        └─────────────┘                        │
-│                                                                  │
-│   GUARANTEE:                                                     │
+│                                                                 │
+│   GUARANTEE:                                                    │
 │   • With probability ≥ 1-δ (confidence)                         │
 │   • h has error ≤ ε (accuracy)                                  │
-│                                                                  │
-│   REQUIREMENTS:                                                  │
+│                                                                 │
+│   REQUIREMENTS:                                                 │
 │   • m ≥ (1/ε) × ln(|C|/δ) samples                               │
-│   • Polynomial time algorithm                                    │
-│                                                                  │
+│   • Polynomial time algorithm                                   │
+│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
